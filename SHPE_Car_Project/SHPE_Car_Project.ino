@@ -12,11 +12,12 @@
 //****************************************//
 #define rxPin 2
 #define txPin 3
-#define UP 's'
-#define LEFT 'a'
-#define RIGHT 'd'
-#define DOWN 'w'
-#define STOP 'f'
+#define UP 'A'
+#define LEFT 'C'
+#define RIGHT 'D'
+#define DOWN 'B'
+#define STOP 'E'
+
 #define ON  'n'
 
 
@@ -102,11 +103,8 @@ void loop() {
   while (BlueTooth.available()) {
     myCommand = BlueTooth.read();
     eXecute(myCommand);
-    
-    Serial.print(myCommand);
-    Serial.println(" command");
-    Serial.println(myCommand);
   }
+  
   digitalWrite(trigPin, LOW);
   delayMicroseconds(2);
 
@@ -143,6 +141,9 @@ void loop() {
 //****************************************//
 
 void eXecute(char myCommand) {
+  Serial.print(" command entered: ");
+  Serial.println(myCommand);
+    
   switch (myCommand) {
     case UP:
       forward();
