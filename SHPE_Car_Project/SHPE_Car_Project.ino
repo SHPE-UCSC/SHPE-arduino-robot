@@ -12,35 +12,17 @@
 //****************************************//
 #define rxPin 2
 #define txPin 3
-#define UP 'A'
-#define LEFT 'C'
-#define RIGHT 'D'
-#define DOWN 'B'
-#define STOP 'E'
-
-#define ON  'n'
+#define UP 'w'
+#define LEFT 'a'
+#define RIGHT 'd'
+#define DOWN 's'
+#define STOP 'r'
+#define FASTER '='
+#define SLOWER '-'
 
 
 char myCommand ;
 SoftwareSerial BlueTooth(rxPin, txPin); // RX, TX
-
-//****************************************//
-//      DISTANCE SENSOR SET UP            //
-//****************************************//
-
-const int trigPin = 19;
-const int echoPin = 18;
-long duration;
-int distanceCM;
-
-#define DISTANCE_TO_STOP 10
-
-
-//****************************************//
-//      POT SET UP                        //
-//****************************************//
-
-#define PIN_POT 17
 
 
 //****************************************//
@@ -62,7 +44,7 @@ int distanceCM;
 //   x       //  M4
 
 //Max motor speed is 255
-int MOTOR_SPEED = 255;
+int MOTOR_SPEED = 255/2;
 #define MOTOR_LEFT 3
 #define MOTOR_RIGHT 4
 
@@ -73,8 +55,10 @@ void Stop();
 void forward();
 void left();
 void right();
-void back();
-
+void backward();
+void testMotor();
+void fasterSpeed();
+void slowerSpeed();
 int ledPin = 13;
 
 
@@ -83,54 +67,23 @@ void eXecute(char myCommand);
 void setup() {
   Serial.begin(9600);
 
-  Serial.println("Goodnight moon!");
+  Serial.println("Initializing . . . ");
   BlueTooth.begin(9600);
-  forward();   //Motors are initially stopped
-  pinMode(trigPin, OUTPUT);
-  pinMode(echoPin, INPUT);
   Serial.print(myCommand);
   pinMode(ledPin, OUTPUT);
   digitalWrite(ledPin, LOW);
+  Serial.println("Done with Setup");
+  testMotor(); //Order goes Forward backward, left then right turn.
 }
 
 void loop() {
 
-  //Controlling the motor speed base on the POT
-  //int temp = analogRead(PIN_POT); // gives range from 1023-0
-  //MOTOR_SPEED = analogRead(temp/4); //Motor speed rangge 255-0
-  //MOTOR_SPEED = 255; 
-  
   while (BlueTooth.available()) {
     myCommand = BlueTooth.read();
     eXecute(myCommand);
   }
   
-  digitalWrite(trigPin, LOW);
-  delayMicroseconds(2);
-
-  digitalWrite(trigPin, HIGH);
-  delayMicroseconds(10);
-  digitalWrite(trigPin, LOW);
-
-  duration = pulseIn(echoPin, HIGH);
-  distanceCM = duration * .034 / 2;
-  if (distanceCM == 0) {
-    distanceCM = DISTANCE_TO_STOP + 2; //0cm means nothing was detected ie. no wall
-  }
-
-  //Counter is a safeguard from false signals
-  //The trade off to this is a slighter delay in stopping
-  static int counter = 0;
-  if (distanceCM < DISTANCE_TO_STOP) {
-    counter++;
-  }
-  if (distanceCM < DISTANCE_TO_STOP && counter == 5) {
-    counter = 0;
-    Serial.print(distanceCM);
-    Serial.println(" cm");
-    Stop();
-    //while (1); // GAME OVER!
-  }
+ 
 }
 
 
@@ -155,10 +108,16 @@ void eXecute(char myCommand) {
       right();
       break;
     case DOWN:
-      back();
+      backward();
       break;
     case STOP:
       Stop();
+      break;
+    case FASTER:
+      fasterSpeed();
+      break;
+    case SLOWER:
+      slowerSpeed();
       break;
   }
   //Prints a new line every time you press a new command
@@ -184,7 +143,7 @@ void forward()
   motor2.run(FORWARD); //rotate the motor clockwise
 }
 
-void back()
+void backward()
 {
   motor1.setSpeed(MOTOR_SPEED);
   motor1.run(BACKWARD); //rotate the motor counterclockwise
@@ -195,19 +154,19 @@ void back()
 
 void left()
 {
-  motor1.setSpeed(MOTOR_SPEED); //Define maximum velocity
+  motor1.setSpeed(MOTOR_SPEED*3/4); //Define maximum velocity
   motor1.run(FORWARD); //rotate the motor clockwise
   
-  motor2.setSpeed(0);
-  motor2.run(RELEASE); //turn motor2 off
+  motor2.setSpeed(MOTOR_SPEED*3/4);
+  motor2.run(BACKWARD); //turn motor2 off
 }
 
 void right()
 {
-  motor1.setSpeed(0);
-  motor1.run(RELEASE); //turn motor1 off
+  motor1.setSpeed(MOTOR_SPEED*3/4);
+  motor1.run(BACKWARD); //turn motor1 off
   
-  motor2.setSpeed(MOTOR_SPEED); //Define maximum velocity
+  motor2.setSpeed(MOTOR_SPEED*3/4); //Define maximum velocity
   motor2.run(FORWARD); //rotate the motor clockwise
 }
 
@@ -221,3 +180,27 @@ void Stop()
 
 }
 
+
+void fasterSpeed() {
+    if((MOTOR_SPEED+10) < 255) {
+      MOTOR_SPEED += 10; 
+    }
+  }
+void slowerSpeed() {
+    if((MOTOR_SPEED-10) > 0) {
+      MOTOR_SPEED -= 10; 
+    }
+  }
+
+void testMotor() {
+    delay(500);
+    forward();
+    delay(1000);
+    backward();
+    delay(1000);
+    left();
+    delay(1000);
+    right();
+    delay(1000);
+    Stop();
+  }
