@@ -1,18 +1,22 @@
+#ifndef _MOTORCONTROL_H_
+#define _MOTORCONTROL_H_
 
-#ifndef MOTORCONTROL_H
-#define MOTORCONTROL_H
 #include <AFMotor.h>
 
-AF_DCMotor motor1(MOTOR_LEFT);
-AF_DCMotor motor2(MOTOR_RIGHT);
-int MOTOR_SPEED = 255/2;
+#define MAXSPEED	255
+#define MAXRUN		MAXSPEED / 2
+#define MINSPEED		0
 
+#define MOTOR_LEFT 3
+#define MOTOR_RIGHT 4
 
-void Stop();
-void forward();
+void halt();
 void left();
 void right();
+void forward();
 void backward();
 void testMotor();
-void setSpeed(uint8 speed);
-#endif /* MOTORCONTROL_H */
+void fasterSpeed();
+void slowerSpeed();
+
+#endif /* _MOTORCONTROL_H_ */
